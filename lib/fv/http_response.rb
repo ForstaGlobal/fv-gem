@@ -15,7 +15,7 @@ module FV
     end
 
     def errors
-      @errors ||= begin
+      @errors ||=
         if successful?
           []
         elsif json.key?(:errors)
@@ -28,7 +28,6 @@ module FV
             )
           ]
         end
-      end
     end
 
     def json

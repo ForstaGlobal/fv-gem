@@ -10,5 +10,5 @@ class FakeResponse
     status >= 200 && status < 400
   end
 
-  alias code status
+  alias_method :code, :status
 end
