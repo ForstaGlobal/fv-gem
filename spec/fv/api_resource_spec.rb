@@ -193,9 +193,37 @@ describe FV::ApiResource do
     end
   end
 
+  describe '.belongs_to' do
+    before(:each) do
+      @resource = TestSdk::BelongsToResource.new(id: 1)
+    end
+
+    it 'creates method for accessing relationship' do
+      allow(TestSdk).to receive(:request).and_return(double(data: {}))
+
+      result = @resource.foo_bar
+
+      expect(TestSdk).to(
+        have_received(:request)
+          .with(
+            :get,
+            '/belongs_to_resources/1/foo_bar'
+          )
+      )
+      expect(result).to be_a(TestSdk::FooBar)
+    end
+
+    it 'saves association changes by hitting relationships url' do
+    end
+  end
+
   module TestSdk
     extend FV::Client
     class FooBar < FV::ApiResource
+    end
+
+    class BelongsToResource < FV::ApiResource
+      belongs_to :foo_bar
     end
 
     class Foo < FV::ApiResource
