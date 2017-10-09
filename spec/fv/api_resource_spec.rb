@@ -212,9 +212,6 @@ describe FV::ApiResource do
       )
       expect(result).to be_a(TestSdk::FooBar)
     end
-
-    it 'saves association changes by hitting relationships url' do
-    end
   end
 
   module TestSdk
