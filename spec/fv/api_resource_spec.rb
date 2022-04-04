@@ -109,6 +109,36 @@ describe FV::ApiResource do
     end
   end
 
+  describe '.save' do
+    it 'updates attributes based on server response' do
+      fake_response = double(FV::HttpResponse)
+      allow(fake_response).to(
+        receive(:data).and_return(attributes: { 'name' => 'server response' })
+      )
+      allow_any_instance_of(FV::Client).to(
+        receive(:request)
+          .with(:patch, '/foo_bars/3', body: {
+            data: {
+              id: 3,
+              type: 'foo_bars',
+              attributes: { 'name' => 'changed' }
+            }
+          }.to_json)
+          .and_return(fake_response)
+      )
+
+      resource = TestSdk::FooBar.new(
+        id: 3,
+        attributes: { 'name' => 'original' },
+        meta: { stuff: 1 }
+      )
+      resource.name = 'changed'
+      resource.save
+
+      expect(resource.name).to eq('server response')
+    end
+  end
+
   describe '.has_many' do
     before(:each) do
       @resource = TestSdk::Foo.new(id: 1)
@@ -193,9 +223,35 @@ describe FV::ApiResource do
     end
   end
 
+  describe '.belongs_to' do
+    before(:each) do
+      @resource = TestSdk::BelongsToResource.new(id: 1)
+    end
+
+    it 'creates method for accessing relationship' do
+      allow(TestSdk).to receive(:request).and_return(double(data: {}))
+
+      result = @resource.foo_bar
+
+      expect(TestSdk).to(
+        have_received(:request)
+          .with(
+            :get,
+            '/belongs_to_resources/1/foo_bar'
+          )
+      )
+      expect(result).to be_a(TestSdk::FooBar)
+    end
+  end
+
   module TestSdk
     extend FV::Client
     class FooBar < FV::ApiResource
+      define_attribute_readers :name
+    end
+
+    class BelongsToResource < FV::ApiResource
+      belongs_to :foo_bar
     end
 
     class Foo < FV::ApiResource
